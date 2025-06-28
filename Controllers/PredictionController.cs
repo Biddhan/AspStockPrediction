@@ -19,7 +19,7 @@ namespace StockPredictionAPI.Controllers
             _scalerSession = new InferenceSession("MlModels/scaler.onnx");
             _modelSession = new InferenceSession("MlModels/linear_regression_model.onnx");
         }
-        
+
         [HttpPost("predict")]
         public ActionResult<object> Predict([FromBody] StockInput input)
         {
@@ -27,7 +27,7 @@ namespace StockPredictionAPI.Controllers
             {
                 // Preparing input data ( Open, High, Year, Low)
                 var inputData = new float[] { input.Open, input.High, input.Year, input.Low };
-                
+
                 // Creating tensor for scaling
                 var inputTensor = new DenseTensor<float>(inputData, new[] { 1, 4 });
                 var scalerInputs = new List<NamedOnnxValue>
@@ -54,6 +54,25 @@ namespace StockPredictionAPI.Controllers
             catch (Exception ex)
             {
                 return BadRequest(new { Error = ex.Message });
+            }
+        }
+         // Proper implementation of IDisposable
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposed)
+            {
+                if (disposing)
+                {
+                    _modelSession?.Dispose();
+                    _scalerSession?.Dispose();
+                }
+                _disposed = true;
             }
         }
     }
