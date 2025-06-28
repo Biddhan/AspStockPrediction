@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Price Predictor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            width: 100%;
+            max-width: 600px;
+            transform: translateY(0);
+            transition: all 0.3s ease;
+        }
+
+        .container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+            font-weight: 300;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+            position: relative;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+            font-size: 1rem;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result {
+            margin-top: 30px;
+            padding: 25px;
+            border-radius: 12px;
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: 500;
+            animation: slideIn 0.5s ease;
+        }
+
+        .result.success {
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+            color: white;
+            box-shadow: 0 10px 25px rgba(79, 172, 254, 0.3);
+        }
+
+        .result.error {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+            color: white;
+            box-shadow: 0 10px 25px rgba(255, 107, 107, 0.3);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .api-status {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .api-status.connected {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .api-status.disconnected {
+            background: #f44336;
+            color: white;
+        }
+
+        .settings {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .settings label {
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+
+        .settings input {
+            padding: 8px 12px;
+            font-size: 0.9rem;
+        }
+
+        .example-data {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e3f2fd;
+            border-radius: 12px;
+            border-left: 4px solid #2196F3;
+        }
+
+        .example-data h3 {
+            color: #1976D2;
+            margin-bottom: 10px;
+            font-size: 1rem;
+        }
+
+        .example-btn {
+            background: #2196F3;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            margin-top: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .example-btn:hover {
+            background: #1976D2;
+            transform: translateY(-1px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="api-status" id="apiStatus">Checking API...</div>
+        
+        <h1>📈 Stock Price Predictor</h1>
+        
+        <div class="settings">
+            <label for="apiUrl">API URL:</label>
+            <input type="text" id="apiUrl" value="http://localhost:5092/Prediction/predict" placeholder="Enter your API URL">
+        </div>
+
+        <form id="predictionForm">
+            <div class="form-group">
+                <label for="open">Opening Price ($)</label>
+                <input type="number" id="open" step="0.01" required placeholder="e.g., 150.25">
+            </div>
+
+            <div class="form-group">
+                <label for="high">High Price ($)</label>
+                <input type="number" id="high" step="0.01" required placeholder="e.g., 155.80">
+            </div>
+
+            <div class="form-group">
+                <label for="low">Low Price ($)</label>
+                <input type="number" id="low" step="0.01" required placeholder="e.g., 148.50">
+            </div>
+
+            <div class="form-group">
+                <label for="year">Year</label>
+                <input type="number" id="year" min="2000" max="2030" required placeholder="e.g., 2024">
+            </div>
+
+            <button type="submit" class="btn" id="predictBtn">
+                Predict Closing Price
+            </button>
+        </form>
+
+        <div class="example-data">
+            <h3>📊 Sample Data</h3>
+            <p><strong>AAPL Sample:</strong> Open: $150.25, High: $155.80, Low: $148.50, Year: 2024</p>
+            <button class="example-btn" onclick="fillSampleData()">Use Sample Data</button>
+        </div>
+
+        <div id="result"></div>
+    </div>
+
+    <script>
+        const form = document.getElementById('predictionForm');
+        const resultDiv = document.getElementById('result');
+        const predictBtn = document.getElementById('predictBtn');
+        const apiUrlInput = document.getElementById('apiUrl');
+        const apiStatus = document.getElementById('apiStatus');
+
+        // Check API status on load and URL change
+        window.addEventListener('load', checkApiStatus);
+        apiUrlInput.addEventListener('input', debounce(checkApiStatus, 1000));
+
+        // Debounce function to limit API calls
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // Check if API is accessible
+        async function checkApiStatus() {
+            const apiUrl = apiUrlInput.value.replace('/predict', '');
+            
+            try {
+                // Try to make a test request to see if the API is accessible
+                const response = await fetch(apiUrl + '/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        open: 0,
+                        high: 0,
+                        low: 0,
+                        year: 2024
+                    })
+                });
+                
+                if (response.status !== 0) { // Any response means API is accessible
+                    apiStatus.textContent = 'API Connected';
+                    apiStatus.className = 'api-status connected';
+                } else {
+                    throw new Error('No response');
+                }
+            } catch (error) {
+                apiStatus.textContent = 'API Disconnected';
+                apiStatus.className = 'api-status disconnected';
+            }
+        }
+
+        // Fill form with sample data
+        function fillSampleData() {
+            document.getElementById('open').value = '150.25';
+            document.getElementById('high').value = '155.80';
+            document.getElementById('low').value = '148.50';
+            document.getElementById('year').value = '2024';
+        }
+
+        // Handle form submission
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Get form data
+            const formData = {
+                open: parseFloat(document.getElementById('open').value),
+                high: parseFloat(document.getElementById('high').value),
+                low: parseFloat(document.getElementById('low').value),
+                year: parseInt(document.getElementById('year').value)
+            };
+
+            // Validate data
+            if (formData.high < formData.open || formData.high < formData.low) {
+                showResult('High price should be greater than or equal to both Open and Low prices.', 'error');
+                return;
+            }
+
+            if (formData.low > formData.open || formData.low > formData.high) {
+                showResult('Low price should be less than or equal to both Open and High prices.', 'error');
+                return;
+            }
+
+            // Show loading state
+            predictBtn.disabled = true;
+            predictBtn.innerHTML = '<span class="loading"></span>Predicting...';
+            
+            try {
+                const response = await fetch(apiUrlInput.value, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    const predictedPrice = data.close || data.Close;
+                    showResult(`🎯 Predicted Closing Price: $${predictedPrice.toFixed(2)}`, 'success');
+                } else {
+                    showResult(`❌ Error: ${data.error || data.Error || 'Prediction failed'}`, 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showResult(`❌ Network Error: ${error.message}. Make sure your API is running and accessible.`, 'error');
+            } finally {
+                // Reset button
+                predictBtn.disabled = false;
+                predictBtn.innerHTML = 'Predict Closing Price';
+            }
+        });
+
+        // Show result
+        function showResult(message, type) {
+            resultDiv.innerHTML = message;
+            resultDiv.className = `result ${type}`;
+            resultDiv.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Auto-fill current year
+        document.getElementById('year').value = new Date().getFullYear();
+    </script>
+</body>
+</html>
